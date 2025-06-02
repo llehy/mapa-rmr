@@ -1,2 +1,139 @@
-# mapa-rmr
-Mapa da região metropolitana
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Mapa RMR com Filtros</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 600px; width: 100%; }
+    .modal {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -20%);
+      background: white;
+      padding: 20px;
+      border: 2px solid #000;
+      border-radius: 8px;
+      z-index: 1000;
+      display: none;
+      max-width: 90%;
+    }
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      display: none;
+    }
+    label, select { display: block; margin: 8px 0; }
+    #resultados { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<h2 style="text-align:center;">Mapa Interativo - Cursos na Região Metropolitana do Recife</h2>
+<div id="map"></div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay"></div>
+<div class="modal" id="modal">
+  <h3 id="cidadeSelecionada">Cidade</h3>
+  <label for="tipo">Tipo de Curso:</label>
+  <select id="tipo">
+    <option value="">-- Escolha --</option>
+    <option value="tecnologia">Tecnologia</option>
+    <option value="empreendedorismo">Empreendedorismo</option>
+    <option value="costura">Costura</option>
+  </select>
+  <button onclick="filtrarCursos()">Buscar</button>
+  <div id="resultados"></div>
+  <button onclick="fecharModal()">Fechar</button>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([-8.0476, -34.8770], 10);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  // Lista de cidades com coordenadas
+  const cidadesRMR = [
+    { nome: "Recife", lat: -8.0476, lon: -34.8770 },
+    { nome: "Olinda", lat: -7.9986, lon: -34.8417 },
+    { nome: "Jaboatão dos Guararapes", lat: -8.1120, lon: -35.0145 },
+    { nome: "Paulista", lat: -7.9408, lon: -34.8730 },
+    { nome: "Cabo de Santo Agostinho", lat: -8.2822, lon: -35.0325 },
+    { nome: "Igarassu", lat: -7.8292, lon: -34.9021 },
+    { nome: "Abreu e Lima", lat: -7.9111, lon: -34.8984 },
+    { nome: "Camaragibe", lat: -8.0237, lon: -34.9787 },
+    { nome: "São Lourenço da Mata", lat: -8.0068, lon: -35.0189 },
+    { nome: "Ipojuca", lat: -8.3933, lon: -35.0631 },
+    { nome: "Itapissuma", lat: -7.7706, lon: -34.8972 },
+    { nome: "Araçoiaba", lat: -7.7879, lon: -35.0806 },
+    { nome: "Moreno", lat: -8.1166, lon: -35.0831 },
+    { nome: "Ilha de Itamaracá", lat: -7.7471, lon: -34.8302 }
+  ];
+
+  // Dados fictícios por cidade e tipo
+  const cursosPorCidade = {
+    Recife: [
+      { tipo: "tecnologia", nome: "HTML Básico", local: "Centro Digital" },
+      { tipo: "empreendedorismo", nome: "MEI e Finanças", local: "Sebrae" }
+    ],
+    Olinda: [
+      { tipo: "costura", nome: "Costura Criativa", local: "Casa das Artes" }
+    ],
+    Jaboatão: [
+      { tipo: "tecnologia", nome: "Lógica de Programação", local: "Jaboatão Tech" }
+    ],
+    Paulista: [
+      { tipo: "empreendedorismo", nome: "Como montar seu negócio", local: "Paulista Centro" }
+    ]
+    // Você pode adicionar mais cidades e dados reais aqui
+  };
+
+  // Criar marcadores
+  cidadesRMR.forEach(cidade => {
+    L.marker([cidade.lat, cidade.lon])
+      .addTo(map)
+      .on('click', () => abrirModal(cidade.nome));
+  });
+
+  let cidadeAtual = "";
+
+  function abrirModal(cidade) {
+    cidadeAtual = cidade;
+    document.getElementById('cidadeSelecionada').innerText = Filtros - ${cidade};
+    document.getElementById('tipo').value = "";
+    document.getElementById('resultados').innerHTML = "";
+    document.getElementById('modal').style.display = "block";
+    document.getElementById('overlay').style.display = "block";
+  }
+
+  function fecharModal() {
+    document.getElementById('modal').style.display = "none";
+    document.getElementById('overlay').style.display = "none";
+  }
+
+  function filtrarCursos() {
+    const tipoSelecionado = document.getElementById('tipo').value;
+    const cursos = cursosPorCidade[cidadeAtual] || [];
+    const filtrados = cursos.filter(c => c.tipo === tipoSelecionado);
+
+    const html = filtrados.length
+      ? filtrados.map(c => <p><strong>${c.nome}</strong><br>${c.local}</p>).join("")
+      : "<p>Nenhum curso encontrado com esse filtro.</p>";
+
+    document.getElementById('resultados').innerHTML = html;
+  }
+</script>
+
+</body>
+</html>
